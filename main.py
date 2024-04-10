@@ -62,3 +62,6 @@ while g.running:
 
 pygame.quit()
 sys.exit()
+
+
+# joppes ändringar
