@@ -21,6 +21,7 @@ class Game:
         self.attacks = pygame.sprite.LayeredUpdates()
         self.player = Player(self, 1, 2)
         self.world = pygame.sprite.LayeredUpdates()
+        self.wordl = pygame.sprite.LayeredUpdates()
 
         self.generateTilemap()
 
