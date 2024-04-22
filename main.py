@@ -19,12 +19,14 @@ class Game:
         self.black = pygame.sprite.LayeredUpdates()
         self.enemies = pygame.sprite.LayeredUpdates() #kanske inte behövs om vi har pvp
         self.attacks = pygame.sprite.LayeredUpdates()
-
         self.player = Player(self, 1, 2)
+        self.world = pygame.sprite.LayeredUpdates()
+
+        self.generateTilemap()
 
     def events(self):
         for event in pygame.event.get():
-            if event.type == pygame.quit:
+            if event.type == pygame.QUIT:
                 self.playing = False
                 self.running = False
 
@@ -36,7 +38,10 @@ class Game:
         self.running = False
     
     def generateTilemap(self):
-        pass
+        for i, row in enumerate(TILEMAP):
+            for j, column in enumerate(row):
+                if column == 0:
+                    World(self, j, i)
 
     def draw(self):
         self.screen.fill(BLACK)
@@ -62,8 +67,3 @@ while g.running:
 
 pygame.quit()
 sys.exit()
-#hello there its jimmy!!!!
-
-
-
-# joppes ändringar
