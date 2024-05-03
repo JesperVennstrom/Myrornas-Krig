@@ -121,10 +121,10 @@ class World(pygame.sprite.Sprite):
         self.groups = self.game.all_sprites, self.game.world
         pygame.sprite.Sprite.__init__(self, self.groups)
 
-        self.x = x * TILESIZE
-        self.y = y * TILESIZE
-        self.width = TILESIZE
-        self.hight = TILESIZE
+        self.x = x * 10
+        self.y = y * 10
+        self.width = 10
+        self.hight = 10
 
         self.image = pygame.Surface([self.width, self.hight])
         self.image.fill(WHITE)
