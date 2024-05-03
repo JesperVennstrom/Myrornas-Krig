@@ -5,11 +5,14 @@ TILESIZE = 30
 
 PLAYER_LAYER = 1
 WORLD_LAYER = 0
+UI_LAYER = 2
 
 RED = (225, 0, 0)
 BLACK = (0, 0, 0)
 WHITE = (225, 225, 225)
 GRAY = (128, 128, 128)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
 
 TILEMAP = [
  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
