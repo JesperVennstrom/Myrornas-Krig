@@ -100,12 +100,20 @@ class Game:
             time_left = max(0, time_left)  # Ensure time doesn't go below 0
             time_left_seconds = time_left // 1000  # Convert milliseconds to seconds
             pygame.draw.rect(self.screen, GREEN, pygame.Rect(30, 30, (time_left_seconds / 10) * 110, 20))
+            if time_left <= 0:
+                self.red_turn = False
+                self.blue_turn = True
+                self.start_time = pygame.time.get_ticks()
 
         if self.blue_turn:
             time_left = self.total_time - (pygame.time.get_ticks() - self.start_time)  # Calculate time left
             time_left = max(0, time_left)  # Ensure time doesn't go below 0
             time_left_seconds = time_left // 1000  # Convert milliseconds to seconds
             pygame.draw.rect(self.screen, GREEN, pygame.Rect(415, 30, (time_left_seconds / 10) * 110, 20))
+            if time_left <= 0:
+                self.red_turn = True
+                self.blue_turn = False
+                self.start_time = pygame.time.get_ticks()
 
 
     def draw(self):

@@ -24,10 +24,8 @@ class BlackPlayer(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.game.turn += 1
-
     def update(self):
-        if self.game.turn == 0:
+        if self.game.red_turn:
             self.movment()
             self.jump()
         self.gravity()
@@ -79,7 +77,7 @@ class WhitePlayer(pygame.sprite.Sprite):
         self.rect.y = self.y
 
     def update(self):
-        if self.game.turn == 1:
+        if self.game.blue_turn == 1:
             self.movment()
             self.jump()
         self.gravity()
