@@ -12,7 +12,9 @@ class Game:
         self.font = pygame.font.Font("freesansbold.ttf", 32)
         self.running = True
         self.start_time = pygame.time.get_ticks()  # Record the start time
-        self.total_time = 10000  # Total time in milliseconds (10 seconds)
+        self.total_time = 15000  # Total time in milliseconds (10 seconds)
+        self.red_turn = True
+        self.blue_turn = False
 
     def new(self):
         self.playing = True
@@ -45,20 +47,24 @@ class Game:
                 if column == 0:
                     World(self, j, i)
 
-    def draw_time(self, time_left_seconds):
-        pygame.draw.rect(self.screen, GREEN, pygame.Rect(30 + (11*time_left_seconds), 30, 10, 20))
 
     def start_timer(self):
         keys = pygame.key.get_pressed()
-        self.time_left_seconds = None
-        pygame.draw.rect(self.screen, WHITE, pygame.Rect(30, 30, 110, 20))
+        pygame.draw.rect(self.screen, WHITE, pygame.Rect(30, 30, 155, 20))
+        pygame.draw.rect(self.screen, WHITE, pygame.Rect(415, 30, 155, 20))
 
-        if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP]:
+        if self.red_turn:
             time_left = self.total_time - (pygame.time.get_ticks() - self.start_time)  # Calculate time left
             time_left = max(0, time_left)  # Ensure time doesn't go below 0
-            self.time_left_seconds = time_left // 1000  # Convert milliseconds to seconds
-        if self.time_left_seconds:
-            self.draw_time(self.time_left_seconds)
+            time_left_seconds = time_left // 1000  # Convert milliseconds to seconds
+            pygame.draw.rect(self.screen, GREEN, pygame.Rect(30, 30, (time_left_seconds / 10) * 110, 20))
+
+        if self.blue_turn:
+            time_left = self.total_time - (pygame.time.get_ticks() - self.start_time)  # Calculate time left
+            time_left = max(0, time_left)  # Ensure time doesn't go below 0
+            time_left_seconds = time_left // 1000  # Convert milliseconds to seconds
+            pygame.draw.rect(self.screen, GREEN, pygame.Rect(415, 30, (time_left_seconds / 10) * 110, 20))
+
 
     def draw(self):
         self.screen.fill(BLACK)
