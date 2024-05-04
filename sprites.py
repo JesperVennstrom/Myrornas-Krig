@@ -30,7 +30,6 @@ class Player(pygame.sprite.Sprite):
         self.gravity()
 
     def movment(self):
-
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_LEFT]:
@@ -47,7 +46,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.y += GRAVITY
         else:
             self.vel_up = 0
-
 
     def jump(self):
         if self.vel_up > 0.1:
