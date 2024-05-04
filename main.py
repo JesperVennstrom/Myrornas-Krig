@@ -31,8 +31,8 @@ class Game:
 
         
         self.players = []
-        self.players.append(BlackPlayer(self, 1, 2))
-        self.players.append(WhitePlayer(self, 2, 1))
+        self.players.append(BlackPlayer(self, 1, 20))
+        self.players.append(WhitePlayer(self, 2, 60))
         self.generateTilemap()
 
     def events(self):
