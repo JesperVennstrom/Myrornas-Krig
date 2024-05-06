@@ -43,6 +43,7 @@ class BlackPlayer(pygame.sprite.Sprite):
         self.offMap()
 
         self.damage()
+        self.healthbar()
 
     def damage(self):
         hits = pygame.sprite.spritecollide(self, self.game.explosion, False)
@@ -62,6 +63,14 @@ class BlackPlayer(pygame.sprite.Sprite):
     def death(self):
         if self.health <= 0:
             self.kill()
+
+    def healthbar(self):
+        health_bar = pygame.Surface([self.width, 5])
+        health = pygame.Surface([self.width * self.health, 5])
+        health_bar.fill(RED)
+        health.fill(GREEN)
+        self.image.blit(health_bar, (0,0))
+        self.image.blit(health, (0,0))
 
     def offMap(self):
         if self.rect.x > WIN_WIDTH - TILESIZE:
@@ -183,8 +192,29 @@ class WhitePlayer(pygame.sprite.Sprite):
             self.bazooka()
         self.collide()
         self.gravity()
+        self.offMap()
 
         self.damage()
+        self.healthbar()
+
+
+    def healthbar(self):
+        health_bar = pygame.Surface([self.width, 5])
+        health = pygame.Surface([self.width * self.health, 5])
+        health_bar.fill(RED)
+        health.fill(GREEN)
+        self.image.blit(health_bar, (0,0))
+        self.image.blit(health, (0,0))
+
+    def offMap(self):
+        if self.rect.x > WIN_WIDTH - TILESIZE:
+            self.rect.x = WIN_WIDTH - TILESIZE
+        elif self.rect.x < 0:
+            self.rect.x = 0
+        if self.rect.y > WIN_HEIGHT:
+            self.kill()
+        elif self.rect.y < 0:
+            self.rect.y = 0
 
     def damage(self):
         hits = pygame.sprite.spritecollide(self, self.game.explosion, False)
