@@ -28,11 +28,12 @@ class Game:
         self.enemies = pygame.sprite.LayeredUpdates() #kanske inte behövs om vi har pvp
         self.attacks = pygame.sprite.LayeredUpdates()
         self.world = pygame.sprite.LayeredUpdates()
+        self.explosion = pygame.sprite.LayeredUpdates()
 
         
         self.players = []
-        self.players.append(BlackPlayer(self, 1, 20))
-        self.players.append(WhitePlayer(self, 2, 60))
+        self.players.append(BlackPlayer(self, 30, 20))
+        self.players.append(WhitePlayer(self, 10, 20))
         self.generateTilemap()
 
     def events(self):
