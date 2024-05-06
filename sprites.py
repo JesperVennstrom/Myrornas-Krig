@@ -40,6 +40,7 @@ class BlackPlayer(pygame.sprite.Sprite):
             self.bazooka()
         self.collide()
         self.gravity()
+        self.offMap()
 
         self.damage()
 
@@ -48,24 +49,30 @@ class BlackPlayer(pygame.sprite.Sprite):
         if hits:
             self.health -= 0.01
             self.push_vel = 10
+            self.vel_up = 10
+            self.y_facing = "down"
             self.exp_direction = hits[0].rect.centerx - self.rect.centerx
             if self.exp_direction > 0:
-                self.exp_direction = -1
+                self.x_facing = "left"
             elif self.exp_direction < 0:
-                self.exp_direction = 1
+                self.x_facing = "right"
 
-        self.push(self.exp_direction)
         self.death()
-    
-    def push(self, direction):
-        if self.push_vel > 0.1:
-            self.rect.y -= self.push_vel
-            self.rect.x += self.push_vel * direction
-            self.push_vel = self.push_vel * 0.95
 
     def death(self):
         if self.health <= 0:
             self.kill()
+
+    def offMap(self):
+        if self.rect.x > WIN_WIDTH - TILESIZE:
+            self.rect.x = WIN_WIDTH - TILESIZE
+        elif self.rect.x < 0:
+            self.rect.x = 0
+        if self.rect.y > WIN_HEIGHT:
+            self.kill()
+        elif self.rect.y < 0:
+            self.rect.y = 0
+
 
 
     def movment(self):
@@ -185,22 +192,15 @@ class WhitePlayer(pygame.sprite.Sprite):
             self.health -= 0.01
             self.push_vel = 10
             self.vel_up = 10
+            self.y_facing = "down"
             self.exp_direction = hits[0].rect.centerx - self.rect.centerx
             if self.exp_direction > 0:
-                self.exp_direction = -1
                 self.x_facing = "left"
             elif self.exp_direction < 0:
-                self.exp_direction = 1
                 self.x_facing = "right"
 
-        self.push(self.exp_direction)
         self.death()
     
-    def push(self, direction):
-        if self.push_vel > 0.1:
-            self.rect.x += self.push_vel * direction
-            self.push_vel = self.push_vel * 0.95
-            self.y_facing = "down"
     
     def death(self):
         if self.health <= 0:
@@ -321,6 +321,7 @@ class Rocket(pygame.sprite.Sprite):
     def update(self):
         self.movement()
         self.collide()
+        self.offMap()
 
     def movement(self):
         self.rect.x += self.vel_x * math.cos(math.radians(self.angle))
@@ -333,6 +334,10 @@ class Rocket(pygame.sprite.Sprite):
         if hits:
             self.kill()
             Explosion(self.game, self.rect.x-TILESIZE//2, self.rect.centery-TILESIZE//2)
+
+    def offMap(self):
+        if self.rect.x > WIN_WIDTH or self.rect.x < 0 or self.rect.y > WIN_HEIGHT or self.rect.y < 0:
+            self.kill()
 
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
