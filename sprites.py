@@ -23,8 +23,6 @@ class BlackPlayer(pygame.sprite.Sprite):
         self.first_click = True
 
         self.x_facing = None
-        self.y_facing = "down"
-        self.has_hit = False
 
         self.image = pygame.Surface([self.width, self.hight])
         self.image.fill(RED)
@@ -33,29 +31,40 @@ class BlackPlayer(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
+        self.x_change = 0
+
     def update(self):
         if self.game.red_turn:
             self.movment()
-            self.jump()
             self.bazooka()
-        self.collide()
+        self.damage()
+        self.x_change += self.push_vel
+        self.rect.x += self.x_change
+        self.collideX(self.x_facing)
+        self.jump()
+        self.collideY("up")
         self.gravity()
         self.offMap()
 
-        self.damage()
         self.healthbar()
+        
+        self.x_change = 0
+
 
     def damage(self):
         hits = pygame.sprite.spritecollide(self, self.game.explosion, False)
+        self.push_vel = self.push_vel * 0.95
         if hits:
             self.health -= 0.01
-            self.push_vel = 10
+            self.push_vel = 0
             self.vel_up = 10
-            self.y_facing = "down"
             self.exp_direction = hits[0].rect.centerx - self.rect.centerx
+            print(self.exp_direction)
             if self.exp_direction > 0:
+                self.push_vel = -10
                 self.x_facing = "left"
             elif self.exp_direction < 0:
+                self.push_vel = 10
                 self.x_facing = "right"
 
         self.death()
@@ -87,53 +96,44 @@ class BlackPlayer(pygame.sprite.Sprite):
     def movment(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_LEFT] and self.vel_up < 0.1:
+        if keys[pygame.K_LEFT]:
             self.x_facing = "left"
+            self.x_change = -VEL
 
-        if keys[pygame.K_RIGHT] and self.vel_up < 0.1:
+        if keys[pygame.K_RIGHT]:
             self.x_facing = "right"
-
-        if not keys[pygame.K_LEFT] and not keys[pygame.K_RIGHT] and self.vel_up < 0.1:
-            self.x_facing = None
+            self.x_change = VEL
 
         if keys[pygame.K_UP] and self.vel_up < 0.1:
             self.vel_up = 20
         
-        if self.x_facing == "left":
-            self.rect.x -= VEL
-        if self.x_facing == "right":
-            self.rect.x += VEL
-        
     
     def gravity(self):
-        self.rect.y += 1
+        self.rect.y += GRAVITY
+        self.collideY("down")
+
+    def collideX(self, direction):
         hits = pygame.sprite.spritecollide(self, self.game.world, False)
-        if not hits:
-            self.rect.y += GRAVITY
-            self.y_facing = "down"
-        self.rect.y -= 1
+        if hits and direction == "right":
+            while hits:
+                self.rect.x = hits[0].rect.x - self.width
+                hits = pygame.sprite.spritecollide(self, self.game.world, False)
+        elif hits and direction == "left":
+            while hits:
+                self.rect.x = hits[0].rect.x + hits[0].width
+                hits = pygame.sprite.spritecollide(self, self.game.world, False)
             
-    def collide(self):
+    def collideY(self, direction):
         hits = pygame.sprite.spritecollide(self, self.game.world, False)
-        if hits and self.y_facing == "down" and self.x_facing == None: 
+        if hits and direction == "down":
             self.rect.y = hits[0].rect.y - self.hight
-            self.vel_up = 0	
+            self.vel_up = 0
             self.has_hit = True
-        elif not hits and self.y_facing == "down" and self.has_hit:
-            self.y_facing = None
-            self.has_hit = False
+        if hits and direction == "up": 
+            while hits:
+                self.rect.y = hits[0].rect.y + hits[0].hight
+                hits = pygame.sprite.spritecollide(self, self.game.world, False)
 
-        if hits and self.x_facing == "right" and not self.y_facing == "down":
-            self.rect.x = hits[0].rect.x - self.width
-        elif hits and self.x_facing == "left" and not self.y_facing == "down":
-            self.rect.x = hits[0].rect.x + hits[0].width
-
-        if hits and self.x_facing == "right" and self.y_facing == "down":
-            self.rect.x = hits[0].rect.x - self.width
-            self.x_facing = None
-        elif hits and self.x_facing == "left" and self.y_facing == "down":
-            self.rect.x = hits[0].rect.x + hits[0].width
-            self.x_facing = None
     def jump(self):
         if self.vel_up > 0.1:
             self.rect.y -= self.vel_up
@@ -185,12 +185,16 @@ class WhitePlayer(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
+        self.x_change = 0
+
     def update(self):
         if self.game.blue_turn:
             self.movment()
-            self.jump()
             self.bazooka()
-        self.collide()
+        self.rect.x += self.x_change
+        self.collideX(self.x_facing)
+        self.jump()
+        self.collideY("up")
         self.gravity()
         self.offMap()
 
@@ -222,14 +226,17 @@ class WhitePlayer(pygame.sprite.Sprite):
             self.health -= 0.01
             self.push_vel = 10
             self.vel_up = 10
-            self.y_facing = "down"
             self.exp_direction = hits[0].rect.centerx - self.rect.centerx
             if self.exp_direction > 0:
                 self.x_facing = "left"
+                self.x_change = -VEL
             elif self.exp_direction < 0:
                 self.x_facing = "right"
+                self.x_change = VEL
 
         self.death()
+
+        self.x_change = 0
     
     
     def death(self):
@@ -240,53 +247,40 @@ class WhitePlayer(pygame.sprite.Sprite):
     def movment(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_LEFT] and self.vel_up < 0.1:
+        if keys[pygame.K_LEFT]:
             self.x_facing = "left"
+            self.x_change = -VEL
 
-        if keys[pygame.K_RIGHT] and self.vel_up < 0.1:
+        if keys[pygame.K_RIGHT]:
             self.x_facing = "right"
-
-        if not keys[pygame.K_LEFT] and not keys[pygame.K_RIGHT] and self.vel_up < 0.1:
-            self.x_facing = None
+            self.x_change = VEL
 
         if keys[pygame.K_UP] and self.vel_up < 0.1:
             self.vel_up = 20
         
-        if self.x_facing == "left":
-            self.rect.x -= VEL
-        if self.x_facing == "right":
-            self.rect.x += VEL
-        
     
     def gravity(self):
-        self.rect.y += 1
+        self.rect.y += GRAVITY
+        self.collideY("down")
+
+    def collideX(self, direction):
         hits = pygame.sprite.spritecollide(self, self.game.world, False)
-        if not hits:
-            self.rect.y += GRAVITY
-            self.y_facing = "down"
-        self.rect.y -= 1
+        if hits and direction == "right":
+            self.rect.x = hits[0].rect.x - self.width
+        elif hits and direction == "left":
+            self.rect.x = hits[0].rect.x + hits[0].width
             
-    def collide(self):
+    def collideY(self, direction):
         hits = pygame.sprite.spritecollide(self, self.game.world, False)
-        if hits and self.y_facing == "down" and self.x_facing == None: 
+        if hits and direction == "down":
             self.rect.y = hits[0].rect.y - self.hight
-            self.vel_up = 0	
+            self.vel_up = 0
             self.has_hit = True
-        elif not hits and self.y_facing == "down" and self.has_hit:
-            self.y_facing = None
-            self.has_hit = False
+        if hits and direction == "up": 
+            while hits:
+                self.rect.y = hits[0].rect.y + hits[0].hight
+                hits = pygame.sprite.spritecollide(self, self.game.world, False)
 
-        if hits and self.x_facing == "right" and not self.y_facing == "down":
-            self.rect.x = hits[0].rect.x - self.width
-        elif hits and self.x_facing == "left" and not self.y_facing == "down":
-            self.rect.x = hits[0].rect.x + hits[0].width
-
-        if hits and self.x_facing == "right" and self.y_facing == "down":
-            self.rect.x = hits[0].rect.x - self.width
-            self.x_facing = None
-        elif hits and self.x_facing == "left" and self.y_facing == "down":
-            self.rect.x = hits[0].rect.x + hits[0].width
-            self.x_facing = None
     def jump(self):
         if self.vel_up > 0.1:
             self.rect.y -= self.vel_up
@@ -305,6 +299,7 @@ class WhitePlayer(pygame.sprite.Sprite):
             self.first_click = True
             if self.shoot_angle:
                 Rocket(self.game, self.rect.x, self.rect.y, self.shoot_angle)
+
 class World(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
