@@ -14,9 +14,13 @@ class Game:
         self.font = pygame.font.Font("freesansbold.ttf", 32)
         self.running = True
         self.start_time = pygame.time.get_ticks()  # Record the start time
-        self.total_time = 15000  # Total time in milliseconds (10 seconds)
+        self.total_time = 10000  # Total time in milliseconds 
         self.red_turn = True
         self.blue_turn = False
+
+        self.win = None
+
+        self.shot = False
 
     def new(self):
         self.playing = True
@@ -24,9 +28,7 @@ class Game:
         self.turn = 0
 
         self.all_sprites = pygame.sprite.LayeredUpdates()
-        self.black = pygame.sprite.LayeredUpdates()
-        self.enemies = pygame.sprite.LayeredUpdates() #kanske inte behövs om vi har pvp
-        self.attacks = pygame.sprite.LayeredUpdates()
+        self.player_sprites = pygame.sprite.LayeredUpdates()
         self.world = pygame.sprite.LayeredUpdates()
         self.explosion = pygame.sprite.LayeredUpdates()
 
@@ -47,7 +49,6 @@ class Game:
             self.events()
             self.update()
             self.draw()
-        self.running = False
 
     def convertBitmap(self):
         # Open the image
@@ -112,8 +113,8 @@ class Game:
     # Namn: Arvid Mårild, Jesper Vennström
     def start_timer(self):
         keys = pygame.key.get_pressed()
-        pygame.draw.rect(self.screen, WHITE, pygame.Rect(30, 30, 155, 20))
-        pygame.draw.rect(self.screen, WHITE, pygame.Rect((WIN_WIDTH - 180), 30, 155, 20))
+        pygame.draw.rect(self.screen, WHITE, pygame.Rect(30, 30, 110, 20))
+        pygame.draw.rect(self.screen, WHITE, pygame.Rect((WIN_WIDTH - 180), 30, 110, 20))
 
         if self.red_turn:
             time_left = self.total_time - (pygame.time.get_ticks() - self.start_time)  # Calculate time left
@@ -152,10 +153,25 @@ class Game:
     def update(self):
         self.all_sprites.update()
 
+    def end(self):
+        for sprite in self.all_sprites:
+            sprite.kill()
+        text = self.font.render(self.win + " wins", True, (WHITE))
+        while self.running and not self.playing:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+            self.screen.fill(BLACK)
+            self.screen.blit(text, ((WIN_WIDTH/2), (WIN_HEIGHT/2)))
+            
+            self.clock.tick(FPS)
+            pygame.display.update()
+
 g = Game()
 g.new()
 while g.running:
     g.main()
-
+    g.end()
 pygame.quit()
 sys.exit()

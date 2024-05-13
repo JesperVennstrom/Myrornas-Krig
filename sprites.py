@@ -7,7 +7,7 @@ class BlackPlayer(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
-        self.groups = self.game.all_sprites
+        self.groups = self.game.all_sprites, self.game.player_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.x = x * TILESIZE
@@ -55,11 +55,13 @@ class BlackPlayer(pygame.sprite.Sprite):
         hits = pygame.sprite.spritecollide(self, self.game.explosion, False)
         self.push_vel = self.push_vel * 0.95
         if hits:
-            self.health -= 0.01
+            self.health -= 0.05
             self.push_vel = 0
-            self.vel_up = 10
+            if self.game.red_turn:
+                self.vel_up = 30
+            else:
+                self.vel_up = 15
             self.exp_direction = hits[0].rect.centerx - self.rect.centerx
-            print(self.exp_direction)
             if self.exp_direction > 0:
                 self.push_vel = -10
                 self.x_facing = "left"
@@ -72,6 +74,8 @@ class BlackPlayer(pygame.sprite.Sprite):
     def death(self):
         if self.health <= 0:
             self.kill()
+            self.game.win = "blue"
+            self.game.playing = False
 
     def healthbar(self):
         health_bar = pygame.Surface([self.width, 5])
@@ -88,6 +92,8 @@ class BlackPlayer(pygame.sprite.Sprite):
             self.rect.x = 0
         if self.rect.y > WIN_HEIGHT:
             self.kill()
+            self.game.win = "blue"
+            self.game.playing = False
         elif self.rect.y < 0:
             self.rect.y = 0
 
@@ -150,15 +156,16 @@ class BlackPlayer(pygame.sprite.Sprite):
         
         if not pressed[0] and not self.first_click:
             self.first_click = True
-            if self.shoot_angle:
-                Rocket(self.game, self.rect.x, self.rect.y, self.shoot_angle)
+            if self.shoot_angle and not self.game.shot:
+                Rocket(self.game, self.rect.centerx, self.rect.centery, self.shoot_angle, self)
+                self.game.shot = True
 
 
 class WhitePlayer(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
-        self.groups = self.game.all_sprites
+        self.groups = self.game.all_sprites, self.game.player_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.x = x * TILESIZE
@@ -191,6 +198,8 @@ class WhitePlayer(pygame.sprite.Sprite):
         if self.game.blue_turn:
             self.movment()
             self.bazooka()
+        self.damage()
+        self.x_change += self.push_vel
         self.rect.x += self.x_change
         self.collideX(self.x_facing)
         self.jump()
@@ -198,8 +207,9 @@ class WhitePlayer(pygame.sprite.Sprite):
         self.gravity()
         self.offMap()
 
-        self.damage()
         self.healthbar()
+        
+        self.x_change = 0
 
 
     def healthbar(self):
@@ -217,31 +227,37 @@ class WhitePlayer(pygame.sprite.Sprite):
             self.rect.x = 0
         if self.rect.y > WIN_HEIGHT:
             self.kill()
+            self.game.win = "red"
+            self.game.playing = False
         elif self.rect.y < 0:
             self.rect.y = 0
 
     def damage(self):
         hits = pygame.sprite.spritecollide(self, self.game.explosion, False)
+        self.push_vel = self.push_vel * 0.95
         if hits:
-            self.health -= 0.01
-            self.push_vel = 10
-            self.vel_up = 10
+            self.health -= 0.05
+            self.push_vel = 0
+            if self.game.blue_turn:
+                self.vel_up = 30
+            else:
+                self.vel_up = 15
             self.exp_direction = hits[0].rect.centerx - self.rect.centerx
             if self.exp_direction > 0:
+                self.push_vel = -10
                 self.x_facing = "left"
-                self.x_change = -VEL
             elif self.exp_direction < 0:
+                self.push_vel = 10
                 self.x_facing = "right"
-                self.x_change = VEL
 
         self.death()
-
-        self.x_change = 0
     
     
     def death(self):
         if self.health <= 0:
             self.kill()
+            self.game.win = "red"
+            self.game.playing = False
 
 
     def movment(self):
@@ -297,8 +313,9 @@ class WhitePlayer(pygame.sprite.Sprite):
         
         if not pressed[0] and not self.first_click:
             self.first_click = True
-            if self.shoot_angle:
-                Rocket(self.game, self.rect.x, self.rect.y, self.shoot_angle)
+            if self.shoot_angle and not self.game.shot:
+                Rocket(self.game, self.rect.centerx, self.rect.centery, self.shoot_angle, self)
+                self.game.shot = True
 
 class World(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -320,7 +337,7 @@ class World(pygame.sprite.Sprite):
         self.rect.y = self.y
 
 class Rocket(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, angle):
+    def __init__(self, game, x, y, angle, player):
         self.game = game
         self._layer = BULLET_LAYER
         self.groups = self.game.all_sprites
@@ -333,6 +350,8 @@ class Rocket(pygame.sprite.Sprite):
         self.vel_x = 10
         self.vel_y = 5
         self.angle = angle
+
+        self.player = player
 
         self.gravity = 0.1
 
@@ -355,14 +374,23 @@ class Rocket(pygame.sprite.Sprite):
         self.rect.y += self.gravity
         self.gravity = self.gravity + 0.45
     def collide(self):
-        hits = pygame.sprite.spritecollide(self, self.game.world, False)
-        if hits:
+        block_hits = pygame.sprite.spritecollide(self, self.game.world, False)
+
+        for sprite in self.game.player_sprites:
+            if sprite != self.player:
+                player_hits = pygame.sprite.collide_circle(self, sprite)
+
+        if block_hits or player_hits:
             self.kill()
             Explosion(self.game, self.rect.x-TILESIZE//2, self.rect.centery-TILESIZE//2)
 
     def offMap(self):
-        if self.rect.x > WIN_WIDTH or self.rect.x < 0 or self.rect.y > WIN_HEIGHT or self.rect.y < 0:
+        if self.rect.x > WIN_WIDTH or self.rect.x < 0 or self.rect.y > WIN_HEIGHT:
             self.kill()
+            self.game.blue_turn = not self.game.blue_turn
+            self.game.red_turn = not self.game.red_turn
+            self.game.shot = False
+            self.game.start_time = pygame.time.get_ticks()
 
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -388,6 +416,7 @@ class Explosion(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.start_time > 1000:
             self.game.blue_turn = not self.game.blue_turn
             self.game.red_turn = not self.game.red_turn
+            self.game.shot = False
             self.game.start_time = pygame.time.get_ticks()
             self.kill()
         self.collide()
